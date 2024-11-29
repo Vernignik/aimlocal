@@ -1,11 +1,9 @@
--- Конфигурация для настройки
 local Config = {
     AutoClickEnabled = false,  -- Включить/выключить автоклик (правая кнопка мыши)
     LeftClickEnabled = false, -- Включить/выключить одиночный выстрел (левая кнопка мыши)
     LockCameraEnabled = false -- Включить/выключить блокировку камеры на голове игрока
 }
 
--- Сервисы
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -15,8 +13,8 @@ local camera = workspace.CurrentCamera
 local targetPlayer = nil
 local isLeftMouseDown = false
 local isRightMouseDown = false
+local autoClickConnection = nil
 
--- Вспомогательные функции
 local function isLobbyVisible()
     -- Убедитесь, что объект Lobby существует, прежде чем проверять его видимость
     local lobby = localPlayer.PlayerGui:FindFirstChild("MainGui")
@@ -67,15 +65,20 @@ local function lockCameraToHead()
 end
 
 local function autoClick()
-    -- Проверка автоклика при зажатой правой кнопке мыши
-    if isRightMouseDown and Config.AutoClickEnabled then
-        if not isLobbyVisible() then
-            mouse1click() -- Выполнение автоклика
-        end
+    if autoClickConnection then
+        autoClickConnection:Disconnect()
     end
+    autoClickConnection = RunService.Heartbeat:Connect(function()
+        if isRightMouseDown and Config.AutoClickEnabled then
+            if not isLobbyVisible() then
+                mouse1click() -- Выполнение автоклика
+            end
+        else
+            autoClickConnection:Disconnect()
+        end
+    end)
 end
 
--- Обработчики ввода
 UserInputService.InputBegan:Connect(function(input, isProcessed)
     if input.UserInputType == Enum.UserInputType.MouseButton1 and not isProcessed and Config.LeftClickEnabled then
         if not isLeftMouseDown then
@@ -89,6 +92,7 @@ UserInputService.InputBegan:Connect(function(input, isProcessed)
         if not isRightMouseDown then
             isRightMouseDown = true
             -- Запуск автоклика
+            autoClick()
         end
     end
 end)
@@ -101,7 +105,6 @@ UserInputService.InputEnded:Connect(function(input, isProcessed)
     end
 end)
 
--- Основной цикл для отслеживания ближайшего игрока и блокировки камеры на его голове
 RunService.Heartbeat:Connect(function()
     if not isLobbyVisible() then
         targetPlayer = getClosestPlayerToMouse()
@@ -109,8 +112,6 @@ RunService.Heartbeat:Connect(function()
             lockCameraToHead()
         end
     end
-    -- Проверка автоклика при зажатой правой кнопке мыши
-    autoClick()
 end)
 
 return Config
