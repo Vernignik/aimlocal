@@ -13,7 +13,6 @@ local camera = workspace.CurrentCamera
 local targetPlayer = nil
 local isLeftMouseDown = false
 local isRightMouseDown = false
-local autoClickConnection = nil
 
 local function isLobbyVisible()
     -- Убедитесь, что объект Lobby существует, прежде чем проверять его видимость
@@ -65,20 +64,15 @@ local function lockCameraToHead()
 end
 
 local function autoClick()
-    if autoClickConnection then
-        autoClickConnection:Disconnect()
-    end
-    autoClickConnection = RunService.Heartbeat:Connect(function()
-        if isRightMouseDown and Config.AutoClickEnabled then
-            if not isLobbyVisible() then
-                mouse1click() -- Выполнение автоклика
-            end
-        else
-            autoClickConnection:Disconnect()
+    -- Автоклик будет происходить только, когда зажата правая кнопка мыши
+    if Config.AutoClickEnabled and isRightMouseDown then
+        if not isLobbyVisible() then
+            mouse1click() -- Выполнение автоклика
         end
-    end)
+    end
 end
 
+-- Обработчики ввода
 UserInputService.InputBegan:Connect(function(input, isProcessed)
     if input.UserInputType == Enum.UserInputType.MouseButton1 and not isProcessed and Config.LeftClickEnabled then
         if not isLeftMouseDown then
@@ -92,7 +86,6 @@ UserInputService.InputBegan:Connect(function(input, isProcessed)
         if not isRightMouseDown then
             isRightMouseDown = true
             -- Запуск автоклика
-            autoClick()
         end
     end
 end)
@@ -105,6 +98,7 @@ UserInputService.InputEnded:Connect(function(input, isProcessed)
     end
 end)
 
+-- Основной цикл для отслеживания ближайшего игрока и блокировки камеры на его голове
 RunService.Heartbeat:Connect(function()
     if not isLobbyVisible() then
         targetPlayer = getClosestPlayerToMouse()
@@ -112,6 +106,8 @@ RunService.Heartbeat:Connect(function()
             lockCameraToHead()
         end
     end
+    -- Выполнение автоклика только если правая кнопка мыши зажата
+    autoClick()
 end)
 
 return Config
