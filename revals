@@ -64,7 +64,8 @@ local function lockCameraToHead()
     end
 end
 
-local function autoClick()
+local function startAutoClick()
+    -- Подключаем автокликер, если правая кнопка зажата
     if autoClickConnection then
         autoClickConnection:Disconnect()
     end
@@ -75,6 +76,13 @@ local function autoClick()
             end
         end
     end)
+end
+
+local function stopAutoClick()
+    -- Останавливаем автокликер
+    if autoClickConnection then
+        autoClickConnection:Disconnect()
+    end
 end
 
 UserInputService.InputBegan:Connect(function(input, isProcessed)
@@ -89,8 +97,8 @@ UserInputService.InputBegan:Connect(function(input, isProcessed)
     elseif input.UserInputType == Enum.UserInputType.MouseButton2 and not isProcessed and Config.AutoClickEnabled then
         if not isRightMouseDown then
             isRightMouseDown = true
-            -- Запуск автоклика
-            autoClick()
+            -- Запуск автокликера, если правая кнопка мыши нажата
+            startAutoClick()
         end
     end
 end)
@@ -101,9 +109,7 @@ UserInputService.InputEnded:Connect(function(input, isProcessed)
     elseif input.UserInputType == Enum.UserInputType.MouseButton2 and not isProcessed then
         isRightMouseDown = false
         -- Остановить автокликер, если правая кнопка отпущена
-        if autoClickConnection then
-            autoClickConnection:Disconnect()
-        end
+        stopAutoClick()
     end
 end)
 
