@@ -1,7 +1,7 @@
 local Config = {
     AutoClickEnabled = false,  -- Включить/выключить автоклик (правая кнопка мыши)
-    LeftClickEnabled = false, -- Включить/выключить одиночный выстрел (левая кнопка мыши)
-    LockCameraEnabled = false -- Включить/выключить блокировку камеры на голове игрока
+    LeftClickEnabled = false,  -- Включить/выключить одиночный выстрел (левая кнопка мыши)
+    LockCameraEnabled = false  -- Включить/выключить блокировку камеры на голове игрока
 }
 
 local Players = game:GetService("Players")
@@ -73,8 +73,6 @@ local function autoClick()
             if not isLobbyVisible() then
                 mouse1click() -- Выполнение автоклика
             end
-        else
-            autoClickConnection:Disconnect()
         end
     end)
 end
@@ -102,6 +100,10 @@ UserInputService.InputEnded:Connect(function(input, isProcessed)
         isLeftMouseDown = false
     elseif input.UserInputType == Enum.UserInputType.MouseButton2 and not isProcessed then
         isRightMouseDown = false
+        -- Остановить автокликер, если правая кнопка отпущена
+        if autoClickConnection then
+            autoClickConnection:Disconnect()
+        end
     end
 end)
 
